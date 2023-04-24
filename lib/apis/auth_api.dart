@@ -1,7 +1,14 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as model;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:twitter_clone/core/core.dart';
+import 'package:twitter_clone/core/providers.dart';
+
+final AuthAPIProvider = Provider((ref) {
+  final account=ref.watch(appWriteAccountProvider);
+  return AuthAPI(account: account);
+});
 
 //appwrite
 //want to signup,want to get user account ->Account
@@ -25,6 +32,10 @@ class AuthAPI implements IAuthAPI {
           userId: ID.unique(), email: email, password: password);
 
       return right(account);
+    } on AppwriteException catch (e, stackTrace) {
+      return left(
+        Failure(e.message ?? ' Some Unexcepted error occured', stackTrace),
+      );
     } catch (e, stackTrace) {
       return left(
         Failure(e.toString(), stackTrace),
