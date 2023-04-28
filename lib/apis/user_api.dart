@@ -8,13 +8,14 @@ import 'package:twitter_clone/core/providers.dart';
 import 'package:twitter_clone/models/user_model.dart';
 
 final UserAPIProvider = Provider((ref) {
-   final db=ref.watch(appwriteDatabaseProvider);
+  final db = ref.watch(appwriteDatabaseProvider);
 
   return userAPI(db: db);
 });
 
 abstract class IUserAPI {
   FutureEitherVoid saveUserData(UserModel userModel);
+  Future<model.Document> getUserData(String uid);
 }
 
 class userAPI implements IUserAPI {
@@ -24,12 +25,27 @@ class userAPI implements IUserAPI {
   @override
   FutureEitherVoid saveUserData(UserModel userModel) async {
     try {
-       await _db.createDocument(databaseId: AppwriteConstants.databaseId, collectionId: AppwriteConstants.usersCollection, documentId: ID.unique(), data: userModel.toMap());
+      await _db.createDocument(
+          databaseId: AppwriteConstants.databaseId,
+          collectionId: AppwriteConstants.usersCollection,
+          documentId: userModel.uid,
+          data: userModel.toMap());
       return right(null);
     } on AppwriteException catch (e, st) {
-      return left(Failure(e.message??'some unexcepted error occured' , st));
+      return left(Failure(e.message ?? 'some unexcepted error occured', st));
     } catch (e, st) {
-       return left(Failure(e.toString() , st));
+      return left(Failure(e.toString(), st));
     }
+  }
+
+  @override
+  Future<model.Document> getUserData(String uid)  {
+    
+    return _db.getDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.usersCollection,
+        documentId: uid);
+    
+    
   }
 }

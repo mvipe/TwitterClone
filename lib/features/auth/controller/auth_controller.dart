@@ -14,9 +14,20 @@ final authControllerProvider =
       authAPI: ref.watch(AuthAPIProvider), userAPI: ref.watch(UserAPIProvider));
 });
 
+final currentUserDetailsProvider = FutureProvider((ref) {
+  final currentUserId = ref.watch(currentUserAccountProvider).value!.$id;
+  final userDetails = ref.watch(userDetailsProvider(currentUserId));
+  return userDetails.value;
+});
+
+final userDetailsProvider = FutureProvider.family(((ref, String uid) {
+  final authController = ref.watch(authControllerProvider.notifier);
+  return authController.getUserData(uid);
+}));
+
 final currentUserAccountProvider = FutureProvider((ref) {
   final authController = ref.watch(authControllerProvider.notifier);
-  return authController.currentUser;
+  return authController.currentUser();
 });
 
 class AuthController extends StateNotifier<bool> {
@@ -31,7 +42,7 @@ class AuthController extends StateNotifier<bool> {
 
   Future<model.Account?> currentUser() => _authAPI.currentUserAccount();
 
-  void signUp (
+  void signUp(
       {required String email,
       required String password,
       required BuildContext context}) async {
@@ -47,16 +58,15 @@ class AuthController extends StateNotifier<bool> {
           followings: const [],
           profilePic: '',
           bannerPic: '',
-          uid: '',
+          uid: r.$id,
           bio: '',
           isTwitterBlue: false);
 
-        final res2=await  _userAPI.saveUserData(userModel);
-        res2.fold((l) => showSnackBar(context, l.message), (r) {
-          showSnackBar(context, "Account Created ! Please Login");
-      Navigator.push(context, LoginView.route());
-        });
-      
+      final res2 = await _userAPI.saveUserData(userModel);
+      res2.fold((l) => showSnackBar(context, l.message), (r) {
+        showSnackBar(context, "Account Created ! Please Login");
+        Navigator.push(context, LoginView.route());
+      });
     });
   }
 
@@ -71,5 +81,14 @@ class AuthController extends StateNotifier<bool> {
     res.fold((l) => showSnackBar(context, l.message), (r) {
       Navigator.push(context, HomeView.route());
     });
+  }
+
+  Future<UserModel> getUserData(String uid) async {
+    print("document.data1");
+    final document = await _userAPI.getUserData(uid);
+    print("document.data");
+    final updatedUser = UserModel.fromMap(document.data);
+
+    return updatedUser;
   }
 }

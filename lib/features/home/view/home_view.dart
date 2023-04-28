@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:twitter_clone/constants/assets_constants.dart';
 import 'package:twitter_clone/constants/ui_constants.dart';
+import 'package:twitter_clone/features/tweet/views/create_tweet_view.dart';
 import 'package:twitter_clone/theme/pallete.dart';
 
 class HomeView extends StatefulWidget {
@@ -23,14 +24,16 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
+  onCreateTweet(){
+    Navigator.push(context, CreateTweetScreen.route());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar,
       body: IndexedStack(index: _page,children: UIConstants.bottomTapBarPages,),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        
-      },child: const Icon(Icons.add,color: Pallete.whiteColor,size: 28,),),
+      floatingActionButton: FloatingActionButton(onPressed: onCreateTweet,child: const Icon(Icons.add,color: Pallete.whiteColor,size: 28,),),
       bottomNavigationBar: CupertinoTabBar(
         onTap: onPageChange,
         backgroundColor: Pallete.backgroundColor,
