@@ -9,6 +9,7 @@ import 'package:twitter_clone/common/common.dart';
 import 'package:twitter_clone/constants/assets_constants.dart';
 import 'package:twitter_clone/core/utils.dart';
 import 'package:twitter_clone/features/auth/controller/auth_controller.dart';
+import 'package:twitter_clone/features/tweet/controller/tweet_controller.dart';
 import 'package:twitter_clone/theme/pallete.dart';
 
 class CreateTweetScreen extends ConsumerStatefulWidget {
@@ -36,14 +37,20 @@ class _CreateTweetScreenState extends ConsumerState<CreateTweetScreen> {
     setState(() {});
   }
 
+  void shareTweet() {
+    ref.read(tweetControllerProvider.notifier).shareTweet(
+        images: images, text: tweetTextControl.text, context: context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserDetailsProvider).value;
+    final isLoading=ref.watch(tweetControllerProvider);
     return Scaffold(
       appBar: AppBar(
         actions: [
           RoundedSmallButton(
-            onTap: () {},
+            onTap: shareTweet,
             label: 'Tweet',
             textColor: Pallete.whiteColor,
             backgroundColor: Pallete.blueColor,
@@ -56,7 +63,7 @@ class _CreateTweetScreenState extends ConsumerState<CreateTweetScreen> {
           },
         ),
       ),
-      body: currentUser == null
+      body: isLoading || currentUser == null
           ? const Loader()
           : SafeArea(
               child: SingleChildScrollView(
@@ -90,15 +97,16 @@ class _CreateTweetScreenState extends ConsumerState<CreateTweetScreen> {
                     ],
                   ),
                   if (images.isNotEmpty)
-                      CarouselSlider(
-                        items: images.map((file) {return 
-                        Container(width:MediaQuery.of(context).size.width,
-                        margin: const EdgeInsets.symmetric(horizontal: 5),
-                          child: Image.file(file));
-                        }).toList(),
-                        options: CarouselOptions(height: 400,enableInfiniteScroll: false),
-                      ),
-                    
+                    CarouselSlider(
+                      items: images.map((file) {
+                        return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            child: Image.file(file));
+                      }).toList(),
+                      options: CarouselOptions(
+                          height: 400, enableInfiniteScroll: false),
+                    ),
                 ],
               ),
             )),

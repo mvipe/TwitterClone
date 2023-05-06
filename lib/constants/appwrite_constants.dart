@@ -4,5 +4,10 @@ class AppwriteConstants{
   static const String endPoint='http://159.65.145.67/v1';
 
   static const String usersCollection="644937d56545fb3e91cd";
-  //"644780e394cf3048a6b5";
+  static const String tweetsCollection="6456252d417f5f17eb29";
+
+  static const String imagesBucket="6456601374d06423543d";
+
+  static String imageUrl(String imageId)=>"http://159.65.145.67/v1/storage/buckets/$imagesBucket/files/$imageId/view?project=$projectId&mode=admin";
+  
 }
