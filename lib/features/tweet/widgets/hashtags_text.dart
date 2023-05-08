@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:twitter_clone/theme/pallete.dart';
 
 class HashtagText extends StatelessWidget {
@@ -24,6 +25,7 @@ class HashtagText extends StatelessWidget {
                 fontSize: 18,
                 ));
       }else{
+       
         textSpans.add(TextSpan(
             text: '$element ',
             style: const TextStyle(
