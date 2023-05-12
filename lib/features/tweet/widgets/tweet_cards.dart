@@ -7,6 +7,7 @@ import 'package:twitter_clone/common/loading_page.dart';
 import 'package:twitter_clone/constants/assets_constants.dart';
 import 'package:twitter_clone/core/enums/tweet_type_enum.dart';
 import 'package:twitter_clone/features/auth/controller/auth_controller.dart';
+import 'package:twitter_clone/features/tweet/controller/tweet_controller.dart';
 import 'package:twitter_clone/features/tweet/widgets/carousel_image.dart';
 import 'package:twitter_clone/features/tweet/widgets/hashtags_text.dart';
 import 'package:twitter_clone/models/tweet_models.dart';
@@ -22,7 +23,9 @@ class TweetCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(userDetailsProvider(tweet.uid)).when(
+    final currentUser=ref.watch(currentUserDetailsProvider).value;
+
+    return currentUser== null?const  SizedBox() :  ref.watch(userDetailsProvider(tweet.uid)).when(
         data: (user) {
           return Column(
             children: [
@@ -101,11 +104,19 @@ class TweetCard extends ConsumerWidget {
                               ),
 
                               LikeButton(
+                                isLiked: tweet.likes.contains(currentUser.uid),
+                                onTap: ((isLiked) async {
+                                  ref.read(tweetControllerProvider.notifier).likeTweet(tweet, user);
+                                  return !isLiked;
+                                }),
+
                                 size: 25,
-                                likeBuilder: ((isLiked) {
+                                likeBuilder: (
+                                  (isLiked) {
                                   return isLiked? SvgPicture.asset(AssetsConstants.likeFilledIcon,color: Pallete.redColor,) :
                                   SvgPicture.asset(AssetsConstants.likeOutlinedIcon,color: Pallete.greyColor,);
                                 }),
+
                                 likeCount: tweet.likes.length,
                                 countBuilder: (likeCount, isLiked, text) {
                                   return Padding(
