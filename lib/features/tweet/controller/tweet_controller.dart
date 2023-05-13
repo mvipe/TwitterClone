@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/apis/storage_api.dart';
@@ -11,19 +12,20 @@ import 'package:twitter_clone/models/user_model.dart';
 
 final tweetControllerProvider =
     StateNotifierProvider<TweetController, bool>((ref) {
-  return TweetController(ref: ref, tweetAPI: ref.watch(tweetAPIProvider)
-  ,storageAPI: ref.watch(storageAPIProvider));
+  return TweetController(
+      ref: ref,
+      tweetAPI: ref.watch(tweetAPIProvider),
+      storageAPI: ref.watch(storageAPIProvider));
 });
 
-final getTweetsProvider = FutureProvider((ref)  {
-  final tweetController=ref.watch(tweetControllerProvider.notifier);
+final getTweetsProvider = FutureProvider((ref) {
+  final tweetController = ref.watch(tweetControllerProvider.notifier);
   return tweetController.getTweets();
 });
 
 final getLatestTweetProvider = StreamProvider.autoDispose((ref) {
- 
-  final tweetAPI=ref.watch(tweetAPIProvider);
-return tweetAPI.getLatestTweets();
+  final tweetAPI = ref.watch(tweetAPIProvider);
+  return tweetAPI.getLatestTweets();
 });
 
 class TweetController extends StateNotifier<bool> {
@@ -39,10 +41,11 @@ class TweetController extends StateNotifier<bool> {
         _storageAPI = storageAPI,
         super(false);
 
-Future<List<Tweet>> getTweets() async{
-  final tweetList=await _tweetAPI.getTweets();
-  return tweetList.map((tweet) => Tweet.fromMap(tweet.data)).toList();
-}
+  Future<List<Tweet>> getTweets() async {
+    final tweetList = await _tweetAPI.getTweets();
+    return tweetList.map((tweet) => Tweet.fromMap(tweet.data)).toList();
+  }
+
   void shareTweet(
       {required List<File> images,
       required String text,
@@ -59,18 +62,37 @@ Future<List<Tweet>> getTweets() async{
     }
   }
 
-  void likeTweet(Tweet tweet,UserModel user) async{
-    List<String> likes=tweet.likes;
-    
-    if(tweet.likes.contains(user.uid)){
+  void likeTweet(Tweet tweet, UserModel user) async {
+    List<String> likes = tweet.likes;
+
+    if (tweet.likes.contains(user.uid)) {
       likes.remove(user.uid);
-    }else {
-       likes.add(user.uid);
+    } else {
+      likes.add(user.uid);
     }
 
-    tweet=tweet.copyWith(likes: likes);
-    final res= await  _tweetAPI.likeTweet(tweet);
+    tweet = tweet.copyWith(likes: likes);
+    final res = await _tweetAPI.likeTweet(tweet);
     res.fold((l) => null, (r) => null);
+  }
+
+  void reshareTweet(
+      Tweet tweet, UserModel currentUser, BuildContext context) async {
+    tweet = tweet.copyWith(retweetedBy: currentUser.name,
+    likes: [],
+    commentIds: [],
+    reshareCount: tweet.reshareCount+1
+    );
+    final res = await _tweetAPI.updateReshareCount(tweet);
+    res.fold((l) => showSnackBar(context, l.message), (r) async{ 
+      tweet=tweet.copyWith(
+        id: ID.unique(),
+        reshareCount: 0,
+        tweetedAt: DateTime.now()
+      );
+      final res2=await _tweetAPI.shareTweet(tweet);
+      res2.fold((l) => showSnackBar(context, l.message), (r) => showSnackBar(context, 'retweeted'));
+    });
   }
 
   void _shareImageTweet(
@@ -93,7 +115,8 @@ Future<List<Tweet>> getTweets() async{
         likes: const [],
         commentIds: const [],
         id: '',
-        reshareCount: 0);
+        reshareCount: 0,
+        retweetedBy: '');
 
     final res = await _tweetAPI.shareTweet(tweet);
     state = false;
@@ -117,7 +140,8 @@ Future<List<Tweet>> getTweets() async{
         likes: const [],
         commentIds: const [],
         id: '',
-        reshareCount: 0);
+        reshareCount: 0,
+        retweetedBy: '');
 
     final res = await _tweetAPI.shareTweet(tweet);
     state = false;
